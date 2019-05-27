@@ -1,0 +1,9 @@
+[Unit]
+Description=dreamnet-ircbot
+AssertPathExists=%h/.local/bin/dreamnet-ircbot
+
+[Service]
+ExecStart=%h/.local/bin/dreamnet-ircbot
+
+[Install]
+WantedBy=multi-user.target
