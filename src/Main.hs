@@ -42,6 +42,7 @@ main = do
 runWithApiKey ∷ ApiKey → IO ()
 runWithApiKey key = do
     s ← newIRCState (plainConnection "chat.freenode.net" 6667) cfg key
+    void $ installHandler sigINT  (Catch (handleShutdown s)) Nothing
     void $ installHandler sigTERM (Catch (handleShutdown s)) Nothing
     putStrLn "Running client..."
     runClientWith s
@@ -54,6 +55,7 @@ runWithApiKey key = do
 
 
 handleShutdown ∷ IRCState s → IO ()
-handleShutdown = runIRCAction disconnect
-
+handleShutdown s = do
+    putStrLn "SIGINT or SIGTERM caught, gracefully shutting down..."
+    runIRCAction disconnect s
 
