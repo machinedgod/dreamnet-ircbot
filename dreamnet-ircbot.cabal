@@ -29,8 +29,10 @@ executable dreamnet-ircbot
                        -Wno-monomorphism-restriction
   main-is:             Main.hs
   other-modules:       YoutubeTitleFetch
-                       Common
                        --LinkStore
+                       Common
+                       ThatsWhatSheSaid
+                       IrcState
   default-language:    Haskell2010
   build-depends:       base,
                        irc-client,
@@ -41,4 +43,5 @@ executable dreamnet-ircbot
                        aeson,
                        wreq,
                        safe,
-                       mtl
+                       mtl,
+                       random

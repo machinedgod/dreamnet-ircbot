@@ -5,18 +5,16 @@
 {-# LANGUAGE ViewPatterns #-}
 
 module YoutubeTitleFetch
-( ApiKey(..)
-, youtubeTitleFetch
+( youtubeTitleFetch
 )
 where
 
 
 import Prelude            hiding (head)
 import Safe                      (headMay)
-import Control.Lens              (view)
+import Control.Lens              (view, use)
 import Control.Monad             ((>=>), forM_)
 import Control.Monad.IO.Class    (liftIO)
-import GHC.Conc                  (readTVarIO)
 import Data.Aeson                (decode')
 import Data.Aeson.TH             (deriveJSON, defaultOptions)
 import Network.IRC.Client hiding (get)
@@ -26,6 +24,7 @@ import Network.Wreq              (get, responseBody)
 import qualified Data.Text as T
 
 import Common
+import IrcState
 
 --------------------------------------------------------------------------------
 
@@ -48,19 +47,14 @@ newtype Param
     = Param [(String, String)]
 newtype Path
     = Path String
-newtype ApiKey
-    = ApiKey String
 
 --------------------------------------------------------------------------------
 
-youtubeTitleFetch ∷ EventHandler ApiKey
-youtubeTitleFetch = EventHandler matcher sourceF
-    where
-        matcher ∷ Event T.Text → Maybe (Message T.Text)
-        matcher = matchWhen isForDreamnetChan
-    
+youtubeTitleFetch ∷ EventHandler IrcState
+youtubeTitleFetch = EventHandler (matchWhen isForDreamnetChan) sourceF
 
-sourceF ∷ Source T.Text → Message T.Text → IRC ApiKey () 
+
+sourceF ∷ Source T.Text → Message T.Text → IRC IrcState () 
 sourceF (Channel "#dreamnet" u) (Privmsg "#dreamnet" (Right x)) = do
     let ws = zip (isHttpUrl <$> T.words x) (T.words x)
     forM_ ws $ processLinks (fetchVideoTitle >=> sendMessage u)
@@ -112,13 +106,13 @@ extractVideoIdFromParam (Param ps) = foldr ff "" ps
 --    &id=JH_Ou17_zyU
 --    &key=l0l I originally forgot to remove it from the comment, fuck me, right!?
 
-fetchVideoTitle ∷ String → IRC ApiKey T.Text
+fetchVideoTitle ∷ String → IRC IrcState T.Text
 fetchVideoTitle videoId = do
-    (ApiKey apiKey) ← view userState >>= liftIO . readTVarIO
+    (ApiKey key) ← use apiKey
     let h  = Host (HTTP True) "www.googleapis.com" Nothing
         p  = "/youtube/v3/videos"
         ps = [ ("part", "snippet")
-             , ("key", apiKey)
+             , ("key", key)
              , ("id", videoId)
              ]
         googleRequest = URL (Absolute h) p ps

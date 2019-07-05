@@ -16,13 +16,10 @@ import Common
 --------------------------------------------------------------------------------
 
 linkStore ∷ EventHandler a
-linkStore = EventHandler matcher sourceF
-    where
-        matcher ∷ Event T.Text → Maybe (Message T.Text)
-        matcher = matchWhen dreamnetMsgIsYoutube
-    
+linkStore = EventHandler (matchWhen isForDreamnetChan) sourceF
+
 
 sourceF ∷ Source T.Text → Message T.Text → IRC a ()
-sourceF (Channel "#dreamnet" u) (Privmsg "#dreamnet" (Right x)) = pure ()
+sourceF (Channel "#dreamnet" _) (Privmsg "#dreamnet" (Right _)) = pure ()
 sourceF _ _ = pure ()
 
