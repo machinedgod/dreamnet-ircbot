@@ -6,6 +6,7 @@ module Main
 )
 where
 
+
 import Control.Lens
 import Control.Monad (void)
 import System.Posix.Signals
@@ -13,12 +14,12 @@ import System.Environment
 import System.Console.GetOpt
 import Network.IRC.Client hiding (get)
 
-
 import YoutubeTitleFetch
+--import LinkStore
 
 --------------------------------------------------------------------------------
 
-data AppConfig
+newtype AppConfig
     = AppConfig { googleApiKey ∷ String
                 }
 
@@ -49,7 +50,9 @@ runWithApiKey key = do
     putStrLn "Disconnected, bye."
     where
         cfg  = defaultInstanceConfig "dreamnet-ircbot"
-                & handlers <>~ [ youtubeTitleFetch ]
+                & handlers <>~ [ youtubeTitleFetch
+                               --, linkStore
+                               ]
                 & channels .~ [ "#dreamnet" ]
 
 
